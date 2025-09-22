@@ -1,6 +1,14 @@
 from enum import Enum
 from sqlmodel import SQLModel, Field
 from datetime import datetime
+from pydantic import BaseModel
+from typing import TypeVar, Generic
+
+T = TypeVar("T")
+
+
+class Response(BaseModel, Generic[T]):
+    data: T
 
 
 # schema for request and response

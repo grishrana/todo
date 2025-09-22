@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from sqlmodel import create_engine, SQLModel, Session, select
 import os
 from urllib.parse import quote_plus
-from .schema import TaskCreate, TaskUpdate  # pyright: ignore[]
+from .schema import TaskCreate, TaskUpdate, Response  # pyright: ignore[]
 from .models import Task
 
 load_dotenv()
@@ -53,18 +53,18 @@ data: Any = []
 app = FastAPI(root_path="/api/v1", lifespan=lifespan)
 
 
-@app.get("/")
+@app.get("/", response_model=Response[str])
 def hello_world():
-    return {"data": DB_USER}
+    return {"data": "Hello World"}
 
 
-@app.get("/api/v1/show")
+@app.get("/api/v1/show", response_model=Response[list[Task]])
 async def show_tasks(session: Session_Dep):
     data = session.exec(select(Task)).all()
     return {"data": data}
 
 
-@app.get("/api/v1/{id}")
+@app.get("/api/v1/{id}", response_model=Response[Task])
 async def show_task(id: int, session: Session_Dep):
     data = session.get(Task, id)
     if not data:
@@ -73,7 +73,7 @@ async def show_task(id: int, session: Session_Dep):
         return {"data": data}
 
 
-@app.post("/api/v1/create")
+@app.post("/api/v1/create", status_code=201, response_model=Response[Task])
 async def create(task: TaskCreate, session: Session_Dep):
     db_task = Task.model_validate(task)
     session.add(db_task)
@@ -82,7 +82,7 @@ async def create(task: TaskCreate, session: Session_Dep):
     return {"data": db_task}
 
 
-@app.put("/api/v1/update/{id}")
+@app.put("/api/v1/update/{id}", response_model=Response[Task])
 async def update(id: int, task_updated: TaskUpdate, session: Session_Dep):
     task = session.get(Task, id)
     if not task:
