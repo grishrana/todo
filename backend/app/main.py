@@ -1,34 +1,10 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Annotated, Any
-from dotenv import load_dotenv
-from sqlmodel import create_engine, SQLModel, Session, select
-import os
-from urllib.parse import quote_plus
+from sqlmodel import Session, select
 from .schema import TaskCreate, TaskUpdate, Response  # pyright: ignore[]
+from .core import Session_Dep, engine, create_engine_table
 from .models import Task
-
-load_dotenv()
-
-DB_USER = os.getenv("DB_USER")
-DB_PASS = quote_plus(str(os.getenv("DB_PASS")))
-DB_URL = f"postgresql://{DB_USER}:{DB_PASS}@localhost:5432/smart_todo"
-
-
-engine = create_engine(DB_URL)
-
-
-def create_engine_table():
-    SQLModel.metadata.create_all(engine)
-
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-
-Session_Dep = Annotated[Session, Depends(get_session)]
 
 
 @asynccontextmanager
@@ -48,8 +24,6 @@ async def lifespan(app: FastAPI):
     yield
 
 
-data: Any = []
-
 app = FastAPI(root_path="/api/v1", lifespan=lifespan)
 
 
@@ -68,9 +42,8 @@ async def show_tasks(session: Session_Dep):
 async def show_task(id: int, session: Session_Dep):
     data = session.get(Task, id)
     if not data:
-        return HTTPException(404)
-    else:
-        return {"data": data}
+        raise HTTPException(status_code=404)
+    return {"data": data}
 
 
 @app.post("/api/v1/create", status_code=201, response_model=Response[Task])
@@ -86,24 +59,23 @@ async def create(task: TaskCreate, session: Session_Dep):
 async def update(id: int, task_updated: TaskUpdate, session: Session_Dep):
     task = session.get(Task, id)
     if not task:
-        return HTTPException(status_code=404)
-    else:
-        task.title = task_updated.title
-        task.description = task_updated.description
-        task.priority = task_updated.priority
-        task.end_date = task_updated.end_date
-        task.completed = task_updated.completed
-        session.add(task)
-        session.commit()
-        session.refresh(task)
-        return {"data": task}
+        raise HTTPException(status_code=404)
+    task.title = task_updated.title
+    task.description = task_updated.description
+    task.priority = task_updated.priority
+    task.end_date = task_updated.end_date
+    task.completed = task_updated.completed
+    session.add(task)
+    session.commit()
+    session.refresh(task)
+    return {"data": task}
 
 
 @app.delete("/api/v1/delete/{id}", status_code=204)
 async def delete(id: int, session: Session_Dep):
     task = session.get(Task, id)
     if not task:
-        return HTTPException(status_code=404)
+        raise HTTPException(status_code=404)
     else:
         session.delete(task)
         session.commit()
