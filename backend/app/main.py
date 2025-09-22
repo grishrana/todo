@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 from .schema import TaskCreate, TaskUpdate, Response  # pyright: ignore[]
 from .core import Session_Dep, engine, create_engine_table
 from .models import Task
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
@@ -24,7 +25,20 @@ async def lifespan(app: FastAPI):
     yield
 
 
+origins = [
+    "http://localhost:8080",
+    "http://localhost:5173",  # vite, svelte
+    "http://localhost:3000",  # react, next
+]
+
 app = FastAPI(root_path="/api/v1", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_headers=["*"],
+    allow_methods=["*"],
+)
 
 
 @app.get("/", response_model=Response[str])
