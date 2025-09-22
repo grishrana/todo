@@ -2,9 +2,8 @@ from fastapi import FastAPI, HTTPException, Depends
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Annotated, Any
-import random
 from dotenv import load_dotenv
-from sqlmodel import create_engine, SQLModel, Session
+from sqlmodel import create_engine, SQLModel, Session, select
 import os
 from urllib.parse import quote_plus
 from .schema import TaskCreate, TaskUpdate  # pyright: ignore[]
@@ -35,6 +34,17 @@ Session_Dep = Annotated[Session, Depends(get_session)]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_engine_table()
+    with Session(engine) as session:
+        if not session.exec(select(Task)).first():
+            session.add(
+                Task(
+                    title="Develop Smart Todo",
+                    description="Complete Backeend with PSG, FASTApi and sqlmodel endpoints",
+                    end_date=datetime(2025, 10, 25, 0, 0, tzinfo=timezone.utc),
+                )
+            )
+
+            session.commit()
     yield
 
 
@@ -49,42 +59,51 @@ def hello_world():
 
 
 @app.get("/api/v1/show")
-async def show_tasks():
+async def show_tasks(session: Session_Dep):
+    data = session.exec(select(Task)).all()
+    return {"data": data}
+
+
+@app.get("/api/v1/{id}")
+async def show_task(id: int, session: Session_Dep):
+    data = session.get(Task, id)
     if not data:
-        raise HTTPException(status_code=404)
-    return {"todo": data}
+        return HTTPException(404)
+    else:
+        return {"data": data}
 
 
 @app.post("/api/v1/create")
-async def create(task: TaskCreate):
-    valid_task = task.dict()
-    valid_task["id"] = random.randint(1, 1000)
-    valid_task["user_id"] = random.randint(1, 1000)
-    valid_task["created_at"] = datetime.now(timezone.utc)
-    valid_task["completed"] = False
-    data.append(valid_task)
-    return {"todo": valid_task}
+async def create(task: TaskCreate, session: Session_Dep):
+    db_task = Task.model_validate(task)
+    session.add(db_task)
+    session.commit()
+    session.refresh(db_task)
+    return {"data": db_task}
 
 
 @app.put("/api/v1/update/{id}")
-async def update(id: int, task_updated: TaskUpdate):
-    updated_fields = task_updated.dict()
-    for index, task in enumerate(data):
-        if task.get("id") == id:
-            for key, value in updated_fields.items():
-                task[key] = value
-
-            data[index] = task
-
-            return {"todo": data[index], "updated": True}
-    return HTTPException(status_code=404)
+async def update(id: int, task_updated: TaskUpdate, session: Session_Dep):
+    task = session.get(Task, id)
+    if not task:
+        return HTTPException(status_code=404)
+    else:
+        task.title = task_updated.title
+        task.description = task_updated.description
+        task.priority = task_updated.priority
+        task.end_date = task_updated.end_date
+        task.completed = task_updated.completed
+        session.add(task)
+        session.commit()
+        session.refresh(task)
+        return {"data": task}
 
 
 @app.delete("/api/v1/delete/{id}", status_code=204)
-async def delete(id: int):
-    for index, task in enumerate(data):
-        if task.get("id") == id:
-            data.pop(index)
-
-    else:
+async def delete(id: int, session: Session_Dep):
+    task = session.get(Task, id)
+    if not task:
         return HTTPException(status_code=404)
+    else:
+        session.delete(task)
+        session.commit()
