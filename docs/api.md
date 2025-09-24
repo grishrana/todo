@@ -1,30 +1,35 @@
 # API Overview
 
-Base URL (local): http://127.0.0.1:8000
+Base URL (local): <http://127.0.0.1:8000>
 
 Interactive docs are available when the server is running:
-- Swagger UI: http://127.0.0.1:8000/docs
-- ReDoc: http://127.0.0.1:8000/redoc
+
+- Swagger UI: <http://127.0.0.1:8000/docs>
+- ReDoc: <http://127.0.0.1:8000/redoc>
 
 Note: The app uses a root path and also prefixes routes with `/api/v1`. Use the paths below as shown.
 
 ## Endpoints
 
 ### GET /
+
 Returns a hello message.
 
 Response:
-```
+
+```json
 {
   "data": "Hello World"
 }
 ```
 
 ### GET /api/v1/show
+
 List all tasks.
 
 Response (200):
-```
+
+```json
 {
   "data": [
     {
@@ -41,16 +46,19 @@ Response (200):
 ```
 
 ### GET /api/v1/{id}
+
 Get one task by id.
 
 - Path params: `id` (integer)
 - Errors: 404 if not found
 
 ### POST /api/v1/create
+
 Create a new task.
 
 Body example:
-```
+
+```json
 {
   "title": "Learn FastAPI",
   "description": "Watch a tutorial",
@@ -60,7 +68,8 @@ Body example:
 ```
 
 Response (201):
-```
+
+```json
 {
   "data": {
     "id": 2,
@@ -75,10 +84,12 @@ Response (201):
 ```
 
 ### PUT /api/v1/update/{id}
+
 Update a task.
 
 Body example:
-```
+
+```json
 {
   "title": "Learn FastAPI (updated)",
   "description": "Read docs",
@@ -89,10 +100,13 @@ Body example:
 ```
 
 ### DELETE /api/v1/delete/{id}
+
 Delete a task.
 
 - Response status: 204 (no body)
 
 ## Data types
+
 - `priority`: one of `high`, `medium`, `low`
 - `end_date` and `created_at`: ISO 8601 DateTime in UTC (example: `2025-10-25T00:00:00Z`)
+
