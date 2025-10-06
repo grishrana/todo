@@ -1,13 +1,12 @@
+import { useTodo } from "@/context/TodoContext";
 import deleteIcon from "../../assets/delete-icon.svg";
 
-const handleClick = () => {
-  
-}
-
 function DeleteTodo({todo}) {
+  const { deleteTask } = useTodo();
+  
   return(
-    <button onClick={handleClick}>
-      <img src={deleteIcon} alt="delete" />
+    <button onClick={()=> deleteTask(todo.id)} className="cursor-pointer hover:bg-[#0f172a] hover:rounded-lg hover:scale-111">
+      <img src={deleteIcon} alt="delete" className="w-10"/>
     </button>
   );
 }

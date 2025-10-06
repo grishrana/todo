@@ -2,9 +2,9 @@ import { useState } from "react";
 import dropdownIcon from "../../assets/dropdown-icon.svg";
 import wrapupIcon from "../../assets/wrapup-icon.svg";
 
-function PriorityDropdown() {
+function PriorityDropdown({priority}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedPriority, setSelectedPriority] = useState(null);
+  const [selectedPriority, setSelectedPriority] = useState(priority);
 
   const priorities = ["high", "medium", "low"];
 
