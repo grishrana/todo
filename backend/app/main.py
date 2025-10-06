@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, HTMLResponse
+from pathlib import Path
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from sqlmodel import Session, select
@@ -40,10 +41,10 @@ app.add_middleware(
     allow_methods=["*"],
 )
 
-
-@app.get("/", response_model=Response[str])
-def hello_world():
-    return {"data": "Hello World"}
+@app.get("/", response_class=HTMLResponse)
+def read_index():
+    html_path = Path(__file__).parent / "wip" / "index.html"
+    return html_path.read_text()
 
 
 @app.get("/api/v1/show", response_model=Response[list[Task]])

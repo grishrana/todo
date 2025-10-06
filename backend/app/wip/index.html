@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work in Progress</title>
+    <style>
+        /* CSS STYLES */
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; /* Fun, cartoony font */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f7e6a0; /* Light yellow/cream background */
+            overflow: hidden; /* Hide potential overflow from animations */
+        }
+
+        .cartoon-header {
+            color: #ff6f61; /* Coral/Red */
+            text-shadow: 2px 2px #4a4a4a; /* Simple shadow for pop-out effect */
+            margin-bottom: 40px;
+            font-size: 3em;
+        }
+
+        /* Cartoony Face Container */
+        .face-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background-color: #ffe082; /* Bright yellow face color */
+            border-radius: 50%;
+            border: 10px solid #4a4a4a; /* Thick, dark border */
+            box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2); /* Lifted effect */
+            margin-bottom: 30px;
+            transition: transform 0.3s ease-out; /* Smooth hover transition */
+        }
+
+        .face-container:hover {
+            transform: scale(1.05) rotate(-3deg); /* Slight wobble on hover */
+        }
+
+        /* Eyes */
+        .eye {
+            position: absolute;
+            top: 50px;
+            width: 30px;
+            height: 30px;
+            background-color: #4a4a4a;
+            border-radius: 50%;
+            border: 5px solid white; /* White highlight/reflection */
+        }
+
+        .eye.left {
+            left: 40px;
+        }
+
+        .eye.right {
+            right: 40px;
+        }
+
+        /* Mouth (Simple Arc Smile) */
+        .mouth {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 50px;
+            border-radius: 0 0 50px 50px;
+            border: 10px solid #4a4a4a;
+            border-top: none; /* Only show the bottom arc */
+            background-color: #ffcdd2; /* Pink/light red tongue area */
+        }
+
+        /* Action Button */
+        #cartoonyButton {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            color: white;
+            background-color: #4CAF50; /* Green */
+            border: 8px solid #388E3C; /* Darker green border */
+            border-radius: 25px; /* Rounded corners */
+            cursor: pointer;
+            box-shadow: 0 8px 0 #388E3C; /* 3D press effect */
+            transition: all 0.1s ease;
+            outline: none;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        #cartoonyButton:active {
+            box-shadow: 0 2px 0 #388E3C; /* Reduce shadow to simulate press */
+            transform: translateY(6px); /* Move button down */
+            background-color: #388E3C;
+        }
+
+        /* JS Added Class for Bounce Animation */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px); /* Move up sharply */
+            }
+            60% {
+                transform: translateY(-10px); /* Move up slightly less */
+            }
+        }
+
+        .bouncing {
+            animation: bounce 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="cartoon-header">Welcome to the FUN Zone! 🎉(Just rando spams included)</h1>
+
+    <div class="face-container" id="cartoonFace">
+        <div class="eye left"></div>
+        <div class="eye right"></div>
+        <div class="mouth"></div>
+    </div>
+
+    <button id="cartoonyButton">Click Me for FUN!</button>
+
+    <script>
+        // JAVASCRIPT CODE
+        document.addEventListener('DOMContentLoaded', () => {
+            const button = document.getElementById('cartoonyButton');
+            const face = document.getElementById('cartoonFace');
+
+            // 1. Button Click Handler
+            button.addEventListener('click', () => {
+                // Add a visual effect: The button itself bounces
+                button.classList.add('bouncing');
+
+                // Add a visual effect: The face changes
+                face.style.backgroundColor = '#ff6f61'; // Change face color to red/coral
+                face.style.transform = 'rotate(10deg) scale(1.1)'; // Get excited!
+
+                // After the animation finishes, remove the class and reset the face
+                setTimeout(() => {
+                    button.classList.remove('bouncing');
+                    face.style.backgroundColor = '#ffe082'; // Reset color
+                    face.style.transform = 'none'; // Reset rotation/scale
+                }, 1000); // 1000ms is the duration of the 'bounce' animation
+                
+                // Optional: Update button text
+                button.textContent = 'AWESOME! Click Again!';
+            });
+
+            // 2. Initial Face Bounce on Load (Self-executing function)
+            (function initialBounce() {
+                face.classList.add('bouncing');
+                setTimeout(() => {
+                    face.classList.remove('bouncing');
+                }, 1000); // Remove after the animation completes
+            })();
+        });
+    </script>
+</body>
+</html>
