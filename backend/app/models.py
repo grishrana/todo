@@ -26,3 +26,5 @@ class Task(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     end_date: datetime
     completed: bool = Field(default=False)
+
+

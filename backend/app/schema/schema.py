@@ -31,3 +31,25 @@ class TaskUpdate(SQLModel):
     priority: PriorityEnum = Field(default=PriorityEnum.medium)
     end_date: datetime
     completed: bool = Field(default=False)
+
+
+# Schema for JWT
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+
+# schema for user
+class User(BaseModel):
+    username: str
+    email: str | None = None
+    full_name: str | None = None
+    disabled: bool | None = None
+
+
+class UserInDB(User):
+    hashed_password: str

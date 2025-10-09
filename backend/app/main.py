@@ -1,11 +1,31 @@
-from fastapi import FastAPI, HTTPException
+from typing import Annotated
+from fastapi import FastAPI, HTTPException, Depends, status
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from sqlmodel import Session, select
-from .schema import TaskCreate, TaskUpdate, Response  # pyright: ignore[]
-from .core import Session_Dep, engine, create_engine_table
+from .schema import (
+    TaskCreate,
+    TaskUpdate,
+    Response,
+    Token,
+    User,
+)  # pyright: ignore[]
+from .core.db import (
+    Session_Dep,
+    engine,
+    create_engine_table,
+)
+from .core.security import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    get_current_user,
+    auth_depend,
+    create_access_token,
+    authenticate_user,
+)
 from .models import Task
+from .core.db import fake_users_db
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 @asynccontextmanager
@@ -41,18 +61,49 @@ app.add_middleware(
 )
 
 
+async def get_current_active_user(
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive User")
+    return current_user
+
+
+@app.post("/token")
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
+    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token, token_type="bearer")
+
+
+@app.get("/users/me")
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    return current_user
+
+
 @app.get("/", response_model=Response[str])
 def hello_world():
     return {"data": "Hello World"}
 
 
-@app.get("/api/v1/show", response_model=Response[list[Task]])
-async def show_tasks(session: Session_Dep):
+@app.get("/show", response_model=Response[list[Task]])
+async def show_tasks(session: Session_Dep, token: auth_depend):
     data = session.exec(select(Task)).all()
     return {"data": data}
 
 
-@app.get("/api/v1/{id}", response_model=Response[Task])
+@app.get("/show/{id}", response_model=Response[Task])
 async def show_task(id: int, session: Session_Dep):
     data = session.get(Task, id)
     if not data:
@@ -60,7 +111,7 @@ async def show_task(id: int, session: Session_Dep):
     return {"data": data}
 
 
-@app.post("/api/v1/create", status_code=201, response_model=Response[Task])
+@app.post("/create", status_code=201, response_model=Response[Task])
 async def create(task: TaskCreate, session: Session_Dep):
     db_task = Task.model_validate(task)
     session.add(db_task)
@@ -69,7 +120,7 @@ async def create(task: TaskCreate, session: Session_Dep):
     return {"data": db_task}
 
 
-@app.put("/api/v1/update/{id}", response_model=Response[Task])
+@app.put("/update/{id}", response_model=Response[Task])
 async def update(id: int, task_updated: TaskUpdate, session: Session_Dep):
     task = session.get(Task, id)
     if not task:
@@ -85,7 +136,7 @@ async def update(id: int, task_updated: TaskUpdate, session: Session_Dep):
     return {"data": task}
 
 
-@app.delete("/api/v1/delete/{id}", status_code=204)
+@app.delete("/delete/{id}", status_code=204)
 async def delete(id: int, session: Session_Dep):
     task = session.get(Task, id)
     if not task:
