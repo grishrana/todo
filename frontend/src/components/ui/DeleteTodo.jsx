@@ -1,4 +1,4 @@
-import { useTodo } from "@/context/TodoContext";
+import { useTodo } from "@/hooks/useTodo";
 import deleteIcon from "../../assets/delete-icon.svg";
 
 function DeleteTodo({todo}) {

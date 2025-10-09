@@ -1,4 +1,4 @@
-import { useTodo } from "@/context/TodoContext";
+import { useTodo } from "@/hooks/useTodo";
 import dropdownIcon from "../../assets/dropdown-icon.svg";
 
 function ShowTodo({todo}) {
