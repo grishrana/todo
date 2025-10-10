@@ -11,6 +11,7 @@ import { useTodo } from "@/hooks/useTodo";
 
 export default function CreateTodoDialog() {
   const { createTask } = useTodo();
+  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [priority, setPriority] = useState("");
@@ -30,11 +31,11 @@ export default function CreateTodoDialog() {
     setDate("");
     setPriority("");
     setDescription("");
-    // close dialog
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <div className="mx-auto w-48 h-12 bg-[#1e293b] flex items-center justify-center rounded-lg gap-2">
           <span className="text-2xl">Create Todo</span>
