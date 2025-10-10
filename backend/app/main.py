@@ -98,7 +98,7 @@ def hello_world():
 
 
 @app.get("/show", response_model=Response[list[Task]])
-async def show_tasks(session: Session_Dep, token: auth_depend):
+async def show_tasks(session: Session_Dep):
     data = session.exec(select(Task)).all()
     return {"data": data}
 
