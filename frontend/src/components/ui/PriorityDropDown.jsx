@@ -4,12 +4,10 @@ import wrapupIcon from "../../assets/wrapup-icon.svg";
 
 function PriorityDropdown({priority, setPriority}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedPriority, setSelectedPriority] = useState(priority);
 
   const priorities = ["high", "medium", "low"];
 
   const handleSelect = (priority) => {
-    setSelectedPriority(priority);
     setPriority(priority);
     setIsOpen(false);
   };
@@ -22,7 +20,7 @@ function PriorityDropdown({priority, setPriority}) {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-center"
       >
-        {selectedPriority ? selectedPriority : "medium"}
+        {priority ? priority : "medium"}
         <img src={isOpen? wrapupIcon: dropdownIcon}
          alt="dropdown" />
       </button>
