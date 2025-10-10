@@ -14,7 +14,7 @@ export default function CreateTodoDialog() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
-  const [priority, setPriority] = useState("");
+  const [priority, setPriority] = useState("medium");
   const [description, setDescription] = useState("");
 
   const handleSubmit = async (e) => {
