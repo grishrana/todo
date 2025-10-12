@@ -1,6 +1,7 @@
 from enum import Enum
 from sqlmodel import SQLModel, Field
 from datetime import datetime, timezone
+from uuid import uuid4, UUID
 
 
 class PriorityEnum(str, Enum):
@@ -9,22 +10,20 @@ class PriorityEnum(str, Enum):
     low = "low"
 
 
-class user(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    email: str = Field(unique=True, max_length=255)
-    username: str = Field(max_length=255, unique=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    pw_hash: str
+# class User(SQLModel, table=True):
+#     id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+#     email: str = Field(unique=True, max_length=255)
+#     username: str = Field(max_length=255, unique=True)
+#     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+#     pw_hash: str
 
 
 class Task(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     title: str
     description: str | None
-    # user_id: int = Field(foreign_key=user.id) will implement it later on
+    # user_id: UUID = Field(foreign_key="User.id")
     priority: PriorityEnum = Field(default=PriorityEnum.medium)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     end_date: datetime
     completed: bool = Field(default=False)
-
-

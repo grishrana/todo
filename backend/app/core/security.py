@@ -1,21 +1,14 @@
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
-from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from pwdlib import PasswordHash
 import jwt
-import os
 from typing import Annotated
 from jwt.exceptions import InvalidTokenError
 from ..schema import TokenData, UserInDB, User
 from .db import fake_users_db
+from .config import settings
 
-load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = float(
-    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")  # pyright: ignore[]
-)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 auth_depend = Annotated[str, Depends(oauth2_scheme)]
@@ -31,7 +24,7 @@ def get_password_hash(password):
 
 
 def decode_jwt(token):
-    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    return jwt.decode(token, settings.jwt_sec_key, algorithms=[settings.jwt_algo])
 
 
 def authenticate_user(fake_db, username: str, password: str):
@@ -85,8 +78,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         expires = datetime.now(timezone.utc) + expires_delta
     else:
         expires = datetime.now(timezone.utc) + timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+            minutes=settings.jwt_token_expire
         )
     to_encode.update({"exp": expires})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.jwt_sec_key, algorithm=settings.jwt_algo
+    )
     return encoded_jwt

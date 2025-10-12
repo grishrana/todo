@@ -16,12 +16,11 @@ from .core.db import (
     create_engine_table,
 )
 from .core.security import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
     get_current_user,
-    auth_depend,
     create_access_token,
     authenticate_user,
 )
+from .core.config import settings
 from .models import Task
 from .core.db import fake_users_db
 from fastapi.middleware.cors import CORSMiddleware
@@ -78,7 +77,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> T
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.jwt_token_expire)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
