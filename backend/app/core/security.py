@@ -5,8 +5,10 @@ from pwdlib import PasswordHash
 import jwt
 from typing import Annotated
 from jwt.exceptions import InvalidTokenError
+from sqlmodel import select
 from ..schema import TokenData, UserInDB, User
 from .db import fake_users_db
+from ..models import Users
 from .config import settings
 
 
@@ -27,11 +29,12 @@ def decode_jwt(token):
     return jwt.decode(token, settings.jwt_sec_key, algorithms=[settings.jwt_algo])
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(db, username: str, password: str):
+    statement = select(Users).where(Users.username == username)
+    user = db.exec(statement).first()
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.pw_hash):
         return False
     return user
 
