@@ -9,6 +9,7 @@ from .schema import (
     Response,
     Token,
     User,
+    UserRegister,
 )  # pyright: ignore[]
 from .core.db import (
     Session_Dep,
@@ -21,8 +22,8 @@ from .core.security import (
     authenticate_user,
 )
 from .core.config import settings
-from .models import Task
-from .core.db import fake_users_db
+from .core.security import get_password_hash
+from .models import Task, Users
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -84,6 +85,17 @@ async def login(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
+
+
+@app.post("/users/register")
+async def register(user: UserRegister, session: Session_Dep):
+    db_user = Users.model_validate(user)
+    pw = db_user.pw_hash
+    db_user.pw_hash = get_password_hash(pw)
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return {"data": db_user}
 
 
 @app.get("/users/me")

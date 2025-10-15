@@ -1,1 +1,10 @@
-from .schema import TaskCreate, TaskUpdate, Response, Token, TokenData, User, UserInDB
+from .schema import (
+    TaskCreate,
+    TaskUpdate,
+    Response,
+    Token,
+    TokenData,
+    User,
+    UserInDB,
+    UserRegister,
+)

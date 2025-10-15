@@ -33,6 +33,12 @@ class TaskUpdate(SQLModel):
     completed: bool = Field(default=False)
 
 
+class UserRegister(SQLModel):
+    email: str = Field(unique=True, max_length=255)
+    username: str = Field(max_length=255, unique=True)
+    pw_hash: str
+
+
 # Schema for JWT
 class Token(BaseModel):
     access_token: str
