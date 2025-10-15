@@ -9,7 +9,7 @@ class PriorityEnum(str, Enum):
     low = "low"
 
 
-class User(SQLModel, table=True):
+class Users(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     email: str = Field(unique=True, max_length=255)
     username: str = Field(max_length=255, unique=True)
@@ -21,7 +21,7 @@ class Task(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     title: str
     description: str | None
-    user_id: int | None = Field(default=None, foreign_key="user.id")
+    user_id: int | None = Field(default=None, foreign_key="users.id")
     priority: PriorityEnum = Field(default=PriorityEnum.medium)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     end_date: datetime
