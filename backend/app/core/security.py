@@ -4,10 +4,8 @@ from datetime import datetime, timedelta, timezone
 from pwdlib import PasswordHash
 import jwt
 from typing import Annotated
-from jwt.exceptions import InvalidTokenError
 from sqlmodel import select
-from ..schema import TokenData, UserInDB, User
-from .db import Session_Dep, fake_users_db
+from .db import Session_Dep
 from ..models import Users
 from .config import settings
 

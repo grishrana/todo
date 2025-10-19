@@ -8,7 +8,6 @@ from .schema import (
     TaskUpdate,
     Response,
     Token,
-    User,
     UserRegister,
 )  # pyright: ignore[]
 from .core.db import (
@@ -92,7 +91,7 @@ async def register(user: UserRegister, session: Session_Dep):
 
 @app.get("/users/me")
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[Users, Depends(get_current_user)],
 ):
     return current_user
 

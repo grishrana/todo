@@ -3,8 +3,5 @@ from .schema import (
     TaskUpdate,
     Response,
     Token,
-    TokenData,
-    User,
-    UserInDB,
     UserRegister,
 )
