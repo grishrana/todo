@@ -22,7 +22,7 @@ from .core.security import (
     authenticate_user,
 )
 from .core.config import settings
-from .core.security import get_password_hash
+from .core.security import get_password_hash, auth_depend
 from .models import Task, Users
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -87,7 +87,7 @@ async def login(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.post("/users/register")
+@app.post("/users/register", status_code=201)
 async def register(user: UserRegister, session: Session_Dep):
     db_user = Users.model_validate(user)
     pw = db_user.pw_hash
@@ -95,7 +95,7 @@ async def register(user: UserRegister, session: Session_Dep):
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
-    return {"data": db_user}
+    return {"created": True}
 
 
 @app.get("/users/me")
@@ -111,13 +111,13 @@ def hello_world():
 
 
 @app.get("/show", response_model=Response[list[Task]])
-async def show_tasks(session: Session_Dep):
+async def show_tasks(session: Session_Dep, token: auth_depend):
     data = session.exec(select(Task)).all()
     return {"data": data}
 
 
 @app.get("/show/{id}", response_model=Response[Task])
-async def show_task(id: int, session: Session_Dep):
+async def show_task(id: int, session: Session_Dep, token: auth_depend):
     data = session.get(Task, id)
     if not data:
         raise HTTPException(status_code=404)
@@ -125,7 +125,7 @@ async def show_task(id: int, session: Session_Dep):
 
 
 @app.post("/create", status_code=201, response_model=Response[Task])
-async def create(task: TaskCreate, session: Session_Dep):
+async def create(task: TaskCreate, session: Session_Dep, token: auth_depend):
     db_task = Task.model_validate(task)
     session.add(db_task)
     session.commit()
@@ -134,7 +134,9 @@ async def create(task: TaskCreate, session: Session_Dep):
 
 
 @app.put("/update/{id}", response_model=Response[Task])
-async def update(id: int, task_updated: TaskUpdate, session: Session_Dep):
+async def update(
+    id: int, task_updated: TaskUpdate, session: Session_Dep, token: auth_depend
+):
     task = session.get(Task, id)
     if not task:
         raise HTTPException(status_code=404)
@@ -150,7 +152,7 @@ async def update(id: int, task_updated: TaskUpdate, session: Session_Dep):
 
 
 @app.delete("/delete/{id}", status_code=204)
-async def delete(id: int, session: Session_Dep):
+async def delete(id: int, session: Session_Dep, token: auth_depend):
     task = session.get(Task, id)
     if not task:
         raise HTTPException(status_code=404)
