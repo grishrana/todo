@@ -7,7 +7,7 @@ from typing import Annotated
 from jwt.exceptions import InvalidTokenError
 from sqlmodel import select
 from ..schema import TokenData, UserInDB, User
-from .db import fake_users_db
+from .db import Session_Dep, fake_users_db
 from ..models import Users
 from .config import settings
 
@@ -39,40 +39,29 @@ def authenticate_user(db, username: str, password: str):
     return user
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-
-
-async def get_current_user(token: auth_depend):
+async def get_current_user(token: auth_depend, session: Session_Dep):
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentails",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    try:
-        payload = decode_jwt(token=token)
-        username = payload.get("sub")
-        if username is None:
-            raise credential_exception
-        token_data = TokenData(username=username)
-    except InvalidTokenError:
-        raise credential_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    payload = decode_jwt(token=token)
+    user_id = int(payload.get("sub"))  # subject is always string in JWT
+    user = session.get(Users, user_id)
     if user is None:
         raise credential_exception
     return user
 
 
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    if current_user.disabled:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
-        )
-    return current_user
+# Todo: Implement status on the User db
+# async def get_current_active_user(
+#     current_user: Annotated[User, Depends(get_current_user)],
+# ):
+#     if current_user.disabled:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
+#         )grishrana7
+#     return current_user
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

@@ -61,14 +61,6 @@ app.add_middleware(
 )
 
 
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive User")
-    return current_user
-
-
 @app.post("/token")
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Session_Dep
@@ -82,7 +74,7 @@ async def login(
         )
     access_token_expires = timedelta(minutes=settings.jwt_token_expire)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
 
@@ -100,7 +92,7 @@ async def register(user: UserRegister, session: Session_Dep):
 
 @app.get("/users/me")
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     return current_user
 
